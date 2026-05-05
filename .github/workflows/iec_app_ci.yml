@@ -48,6 +48,8 @@ jobs:
     steps:
       - name: Checkout codigo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Instalar Node
         uses: actions/setup-node@v4
@@ -76,6 +78,8 @@ jobs:
           args: > 
             -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
             -Dsonar.organization=${{ secrets.SONAR_ORG }}
+            -Dsonar.sources=.
+            -Dsonar.verbose=true
         env: 
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
