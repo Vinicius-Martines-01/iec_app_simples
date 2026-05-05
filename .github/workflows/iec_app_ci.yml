@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -30,7 +30,7 @@ jobs:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
 
-      - name: Instalar dependências
+      - name: Instalar dependencias
         run: npm install || echo "No package.json found"
 
       - name: Scan for secrets
@@ -46,7 +46,7 @@ jobs:
     needs: security
   
     steps:
-      - name: Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v4
 
       - name: Instalar Node
@@ -61,7 +61,7 @@ jobs:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
       
-      - name: Instalar dependências
+      - name: Instalar dependencias
         run: npm install || echo "No package.json found"
 
       - name: Rodar lint
@@ -70,7 +70,7 @@ jobs:
       - name: Run Coverage
         run: npm run test -- --coverage || echo "No test script found"
 
-      - name: Análise com SonarCloud 
+      - name: Analise com SonarCloud 
         uses: SonarSource/sonarcloud-github-action@v2 
         with: 
           args: > 
@@ -84,7 +84,7 @@ jobs:
     needs: quality
 
     steps:
-      - name: Checkout código
+      - name: Checkout codigo
         uses: actions/checkout@v4
 
       - name: Login no Docker Hub
@@ -106,18 +106,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout do código
+      - name: Checkout do codigo
         uses: actions/checkout@v4
 
       - name: Subir Ambiente de teste
         run: docker compose up -d
         working-directory: ./wordpress
 
-      - name: Validar Comunicação (Ping)
+      - name: Validar Comunicacao (Ping)
         run: docker compose exec -T wordpress ping -c 1 db
         working-directory: ./wordpress
 
-      - name: Rodar testes unitários (NPM)
+      - name: Rodar testes unitarios (NPM)
         run: docker compose exec -T wordpress npm test || echo "No npm test found in container"
         working-directory: ./wordpress
 

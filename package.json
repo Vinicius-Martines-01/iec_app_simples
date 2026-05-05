@@ -1,0 +1,11 @@
+{
+  "name": "iec-welcome-theme",
+  "version": "1.0.0",
+  "description": "WordPress theme IEC Welcome - Build tools",
+  "scripts": {
+    "lint": "echo 'No linting configured yet'",
+    "test": "echo 'No tests configured yet'"
+  },
+  "keywords": ["wordpress", "theme", "iec"],
+  "license": "GPL-2.0-or-later"
+}

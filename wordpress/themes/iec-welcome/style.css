@@ -1,0 +1,72 @@
+/*
+Theme Name: IEC Welcome
+Theme URI: https://github.com/Vinicius-Martines/iec_app_teste
+Author: IEC Team
+Author URI: https://github.com/Vinicius-Martines
+Description: Tema de boas-vindas moderno e elegante para o IEC App.
+Version: 1.0.0
+Requires at least: 6.0
+Tested up to: 6.7
+Requires PHP: 8.0
+License: GNU General Public License v2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: iec-welcome
+Tags: one-page, custom-colors, full-width-template, dark
+*/
+
+/* Importar fonte moderna */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+/* ===================== RESET & BASE ===================== */
+*, *::before, *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --color-bg: #09090f;
+    --color-bg-2: #0f0f1a;
+    --color-surface: rgba(255, 255, 255, 0.05);
+    --color-surface-hover: rgba(255, 255, 255, 0.09);
+    --color-border: rgba(255, 255, 255, 0.08);
+    --color-text: #e8e8f0;
+    --color-text-muted: #888899;
+    --color-primary: #7c6af7;
+    --color-primary-light: #a394ff;
+    --color-secondary: #38bdf8;
+    --color-accent: #f472b6;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --radius-sm: 8px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-xl: 36px;
+    --shadow-glow: 0 0 40px rgba(124, 106, 247, 0.25);
+    --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.6;
+    overflow-x: hidden;
+    min-height: 100vh;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
