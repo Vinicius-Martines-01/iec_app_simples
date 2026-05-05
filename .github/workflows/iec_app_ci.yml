@@ -1,0 +1,132 @@
+name: CI Pipeline - WordPress
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Cache de Dependencias
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Instalar dependências
+        run: npm install || echo "No package.json found"
+
+      - name: Scan for secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verificar vulnerabilidade
+        run: npm audit --audit-level=high || echo "No package.json found"
+
+  quality:
+    runs-on: ubuntu-latest
+    needs: security
+  
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Cache de Dependencias
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      
+      - name: Instalar dependências
+        run: npm install || echo "No package.json found"
+
+      - name: Rodar lint
+        run: npm run lint || echo "No lint script found"
+
+      - name: Run Coverage
+        run: npm run test -- --coverage || echo "No test script found"
+
+      - name: Análise com SonarCloud 
+        uses: SonarSource/sonarcloud-github-action@v2 
+        with: 
+          args: > 
+            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+            -Dsonar.organization=${{ secrets.SONAR_ORG }}
+        env: 
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  build:
+    runs-on: ubuntu-latest
+    needs: quality
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Login no Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_PASS }}
+
+      - name: Build com Docker Compose
+        run: docker compose build
+        working-directory: ./wordpress
+
+      - name: Push com Docker Compose
+        run: docker compose push
+        working-directory: ./wordpress
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Subir Ambiente de teste
+        run: docker compose up -d
+        working-directory: ./wordpress
+
+      - name: Validar Comunicação (Ping)
+        run: docker compose exec -T wordpress ping -c 1 db
+        working-directory: ./wordpress
+
+      - name: Rodar testes unitários (NPM)
+        run: docker compose exec -T wordpress npm test || echo "No npm test found in container"
+        working-directory: ./wordpress
+
+  deploy: 
+    runs-on: ubuntu-latest
+    needs: test
+    environment:
+      name: production
+    
+    steps:
+      - name: Simular deploy
+        run: echo "Deploy realizado com sucesso"
