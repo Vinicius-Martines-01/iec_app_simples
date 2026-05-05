@@ -10,6 +10,10 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
+// Forçar a nova porta (8090) no banco de dados
+update_option( 'siteurl', 'http://localhost:8090' );
+update_option( 'home', 'http://localhost:8090' );
+
 // ===================== THEME SETUP =====================
 function iec_welcome_setup() {
     // Suporte a features do WordPress
