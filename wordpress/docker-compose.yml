@@ -9,12 +9,20 @@ services:
       MYSQL_PASSWORD: password_fatec
     volumes:
       - db_data:/var/lib/mysql
+    # Adicionado um healthcheck básico para o banco também, 
+    # garantindo que o WP só tente conectar quando o DB estiver pronto.
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pfatec_password"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   wordpress:
     build: .
     restart: always
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - "8031:80"
     environment:
@@ -25,12 +33,14 @@ services:
       WORDPRESS_CONFIG_EXTRA: |
         define('WP_HOME', 'http://localhost:8031');
         define('WP_SITEURL', 'http://localhost:8031');
+    
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      test: ["CMD", "curl", "-f", "http://localhost:80/97035240"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+
     logging:
       driver: "json-file"
       options:
@@ -38,4 +48,4 @@ services:
         max-file: "3"
 
 volumes:
-  db_data: 
+  db_data:
