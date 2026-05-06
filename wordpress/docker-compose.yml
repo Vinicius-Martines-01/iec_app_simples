@@ -22,9 +22,6 @@ services:
       WORDPRESS_DB_USER: user_fatec
       WORDPRESS_DB_PASSWORD: password_fatec
       WORDPRESS_DB_NAME: wordpress
-      WORDPRESS_CONFIG_EXTRA: |
-        define('WP_HOME', 'http://localhost:8031');
-        define('WP_SITEURL', 'http://localhost:8031');
 
 volumes:
   db_data: 

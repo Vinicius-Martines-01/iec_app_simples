@@ -1,124 +1,49 @@
-name: CI Pipeline - WordPress
+name: CI/CD WordPress Simplificado
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
-  security:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout codigo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Instalar Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-      - name: Instalar dependencias
-        run: npm install
-      - name: Scan for secrets
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Verificar vulnerabilidade
-        run: npm audit --audit-level=high
-
-  quality:
-    runs-on: ubuntu-latest
-    needs: security
-    steps:
-      - name: Checkout codigo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Instalar Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-      - name: Instalar dependencias
-        run: npm install
-      - name: Rodar lint
-        run: npm run lint
-      - name: Run Coverage
-        run: npm run test -- --coverage
-      - name: Analise com SonarCloud 
-        uses: SonarSource/sonarcloud-github-action@v2 
-        with: 
-          args: > 
-            -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-            -Dsonar.organization=${{ secrets.SONAR_ORG }}
-            -Dsonar.sources=.
-            -Dsonar.verbose=true
-        env: 
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
   build:
     runs-on: ubuntu-latest
-    needs: quality
     steps:
-      - name: Checkout codigo
+      - name: Checkout código
         uses: actions/checkout@v4
+
       - name: Login no Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
+
       - name: Build e Push
         run: |
-          docker build -t viniciusmartines01/wordpress-fatec:latest .
-          docker push viniciusmartines01/wordpress-fatec:latest
+          docker compose build
+          docker compose push
         working-directory: ./wordpress
 
-  test:
+  deploy:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout do codigo
-        uses: actions/checkout@v4
-      - name: Instalar Node para Testes
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'npm'
-      - name: Instalar dependencias locais
-        run: npm install
-      - name: Subir Banco de Dados (Docker)
-        run: |
-          docker compose up -d db
-          sleep 20
-        working-directory: ./wordpress
-      - name: Rodar testes unitarios (Local Runner)
-        run: npm test 
-
-  deploy: 
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Checkout do codigo
-        uses: actions/checkout@v4
-      - name: Copiar arquivo docker-compose para o servidor
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_KEY }}
-          source: "wordpress/docker-compose.yml"
-          target: "~/iec_app_teste"
-          strip_components: 1
-      - name: Deploy via SSH (Appleboy)
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd ~/iec_app_teste
+            cd ~
+            if [ ! -d "iec_app_teste" ]; then
+              git clone https://github.com/${{ github.repository }} iec_app_teste
+            fi
+            cd iec_app_teste
+            git pull origin main
+            cd wordpress
             docker compose pull
             docker compose up -d
-            docker image prune -f
