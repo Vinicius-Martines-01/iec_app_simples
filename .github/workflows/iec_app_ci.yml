@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
 
 jobs:
   build:
@@ -40,7 +37,7 @@ jobs:
           script: |
             cd ~
             if [ ! -d "iec_app_teste" ]; then
-              git clone https://github.com/${{ github.repository }} iec_app_teste
+              git clone https://github.com iec_app_teste
             fi
             cd iec_app_teste
             git pull origin main
