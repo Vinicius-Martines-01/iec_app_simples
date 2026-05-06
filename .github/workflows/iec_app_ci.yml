@@ -22,7 +22,7 @@ jobs:
           cache: 'npm'
 
       - name: Instalar dependencias
-        run: npm install # Removido o '|| echo' para garantir que falhe se houver erro real
+        run: npm install
 
       - name: Scan for secrets
         uses: gitleaks/gitleaks-action@v2
@@ -93,20 +93,24 @@ jobs:
       - name: Checkout do codigo
         uses: actions/checkout@v4
 
-      - name: Subir Ambiente de teste
+      - name: Instalar Node para Testes
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Instalar dependencias locais
+        run: npm install
+
+      - name: Subir Banco de Dados (Docker)
         run: |
-          docker compose up -d
+          docker compose up -d db
           echo "Aguardando banco de dados..."
-          sleep 20 # Tempo para o MySQL iniciar corretamente
+          sleep 20
         working-directory: ./wordpress
 
-      - name: Validar Comunicacao (Ping)
-        run: docker compose exec -T wordpress ping -c 1 db
-        working-directory: ./wordpress
-
-      - name: Rodar testes unitarios (NPM)
-        run: npm test
-        working-directory: ./wordpress
+      - name: Rodar testes unitarios (Local Runner)
+        run: npm test 
 
   deploy: 
     runs-on: ubuntu-latest
@@ -119,11 +123,8 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            # No servidor, apenas puxamos a imagem nova e subimos
-            # Isso evita depender de Git no servidor de produção
             cd ~/iec_app_teste || mkdir -p ~/iec_app_teste && cd ~/iec_app_teste
-            
-            # Se o docker-compose.yml não estiver lá, você precisará copiá-lo via SCP antes
+            # Nota: O arquivo docker-compose.yml deve existir nesta pasta no servidor
             docker compose pull
             docker compose up -d
-            docker image prune -f # Limpa imagens antigas para não encher o disco
+            docker image prune -f
