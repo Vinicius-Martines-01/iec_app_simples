@@ -71,8 +71,8 @@ jobs:
           password: ${{ secrets.DOCKER_PASS }}
       - name: Build e Push
         run: |
-          docker build -t ${{ secrets.DOCKER_USER }}/wordpress-fatec:latest .
-          docker push ${{ secrets.DOCKER_USER }}/wordpress-fatec:latest
+          docker build -t viniciusmartines01/wordpress-fatec:latest .
+          docker push viniciusmartines01/wordpress-fatec:latest
         working-directory: ./wordpress
 
   test:

@@ -11,7 +11,7 @@ services:
       - db_data:/var/lib/mysql
 
   wordpress:
-    image: SEU_USUARIO/wordpress-fatec:latest
+    image: viniciusmartines01/wordpress-fatec:latest
     restart: always
     depends_on:
       - db
