@@ -2,16 +2,13 @@ name: CI Pipeline - WordPress
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   security:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout codigo
         uses: actions/checkout@v4
@@ -24,14 +21,8 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Cache de Dependencias
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-
       - name: Instalar dependencias
-        run: npm install || echo "No package.json found"
+        run: npm install # Removido o '|| echo' para garantir que falhe se houver erro real
 
       - name: Scan for secrets
         uses: gitleaks/gitleaks-action@v2
@@ -39,12 +30,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verificar vulnerabilidade
-        run: npm audit --audit-level=high || echo "No package.json found"
+        run: npm audit --audit-level=high
 
   quality:
     runs-on: ubuntu-latest
     needs: security
-  
     steps:
       - name: Checkout codigo
         uses: actions/checkout@v4
@@ -57,20 +47,14 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Cache de Dependencias
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-      
       - name: Instalar dependencias
-        run: npm install || echo "No package.json found"
+        run: npm install
 
       - name: Rodar lint
-        run: npm run lint || echo "No lint script found"
+        run: npm run lint
 
       - name: Run Coverage
-        run: npm run test -- --coverage || echo "No test script found"
+        run: npm run test -- --coverage
 
       - name: Analise com SonarCloud 
         uses: SonarSource/sonarcloud-github-action@v2 
@@ -86,7 +70,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     needs: quality
-
     steps:
       - name: Checkout codigo
         uses: actions/checkout@v4
@@ -97,24 +80,24 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
 
-      - name: Build com Docker Compose
-        run: docker compose build
-        working-directory: ./wordpress
-
-      - name: Push com Docker Compose
-        run: docker compose push
+      - name: Build e Push com Docker Compose
+        run: |
+          docker compose build
+          docker compose push
         working-directory: ./wordpress
 
   test:
     needs: build
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout do codigo
         uses: actions/checkout@v4
 
       - name: Subir Ambiente de teste
-        run: docker compose up -d
+        run: |
+          docker compose up -d
+          echo "Aguardando banco de dados..."
+          sleep 20 # Tempo para o MySQL iniciar corretamente
         working-directory: ./wordpress
 
       - name: Validar Comunicacao (Ping)
@@ -122,13 +105,12 @@ jobs:
         working-directory: ./wordpress
 
       - name: Rodar testes unitarios (NPM)
-        run: docker compose exec -T wordpress npm test || echo "No npm test found in container"
+        run: docker compose exec -T wordpress npm test
         working-directory: ./wordpress
 
   deploy: 
     runs-on: ubuntu-latest
     needs: test
-    
     steps:
       - name: Deploy via SSH (Appleboy)
         uses: appleboy/ssh-action@master
@@ -136,15 +118,12 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
-          scripts: |
-            # Entra na home do usuario
-            cd ~
-            # Se o projeto não existe, clona. Se existe, pull.
-            if [ ! -d "iec_app_teste" ]; then
-              git clone https://github.com/${{ github.repository }} iec_app_teste
-            fi
-            cd iec_app_teste
-            git pull origin main
+          script: |
+            # No servidor, apenas puxamos a imagem nova e subimos
+            # Isso evita depender de Git no servidor de produção
+            cd ~/iec_app_teste || mkdir -p ~/iec_app_teste && cd ~/iec_app_teste
+            
+            # Se o docker-compose.yml não estiver lá, você precisará copiá-lo via SCP antes
             docker compose pull
             docker compose up -d
-            
+            docker image prune -f # Limpa imagens antigas para não encher o disco
