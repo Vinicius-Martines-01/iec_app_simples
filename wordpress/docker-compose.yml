@@ -31,8 +31,8 @@ services:
       WORDPRESS_DB_PASSWORD: password_fatec
       WORDPRESS_DB_NAME: wordpress
       WORDPRESS_CONFIG_EXTRA: |
-        define('WP_HOME', 'http://localhost:8031');
-        define('WP_SITEURL', 'http://localhost:8031');
+        define('WP_HOME', 'http://' . $_SERVER['HTTP_HOST']);
+        define('WP_SITEURL', 'http://' . $_SERVER['HTTP_HOST']);
     
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/97035240"]
