@@ -105,7 +105,7 @@ jobs:
         working-directory: ./wordpress
 
       - name: Rodar testes unitarios (NPM)
-        run: docker compose exec -T wordpress npm test
+        run: npm test
         working-directory: ./wordpress
 
   deploy: 
