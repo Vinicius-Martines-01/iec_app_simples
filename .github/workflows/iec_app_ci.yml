@@ -128,9 +128,23 @@ jobs:
   deploy: 
     runs-on: ubuntu-latest
     needs: test
-    environment:
-      name: production
     
     steps:
-      - name: Simular deploy
-        run: echo "Deploy realizado com sucesso"
+      - name: Deploy via SSH (Appleboy)
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          scripts: |
+            # Entra na home do usuario
+            cd ~
+            # Se o projeto não existe, clona. Se existe, pull.
+            if [ ! -d "iec_app_teste" ]; then
+              git clone https://github.com/${{ github.repository }} iec_app_teste
+            fi
+            cd iec_app_teste
+            git pull origin main
+            docker compose pull
+            docker compose up -d
+            

@@ -16,15 +16,15 @@ services:
     depends_on:
       - db
     ports:
-      - "8090:80"
+      - "8031:80"
     environment:
       WORDPRESS_DB_HOST: db
       WORDPRESS_DB_USER: user_fatec
       WORDPRESS_DB_PASSWORD: password_fatec
       WORDPRESS_DB_NAME: wordpress
       WORDPRESS_CONFIG_EXTRA: |
-        define('WP_HOME', 'http://localhost:8090');
-        define('WP_SITEURL', 'http://localhost:8090');
+        define('WP_HOME', 'http://localhost:8031');
+        define('WP_SITEURL', 'http://localhost:8031');
     volumes:
       - ./themes:/var/www/html/wp-content/themes
 
