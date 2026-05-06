@@ -1,4 +1,4 @@
-name: CI/CD WordPress Simplificado
+name: CI/CD WordPress
 
 on:
   push:
@@ -37,7 +37,7 @@ jobs:
           script: |
             cd ~
             if [ ! -d "iec_app_teste" ]; then
-              git clone https://github.com iec_app_teste
+              git clone https://github.com
             fi
             cd iec_app_teste
             git pull origin main
