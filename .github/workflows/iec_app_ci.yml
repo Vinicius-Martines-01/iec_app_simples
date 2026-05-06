@@ -119,6 +119,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd ~/iec_app_teste
+            export DOCKER_IMAGE=${{ secrets.DOCKER_USER }}/wordpress-fatec:latest
             docker compose pull
             docker compose up -d
             docker image prune -f
