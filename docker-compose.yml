@@ -8,6 +8,8 @@ services:
       POSTGRES_DB: todolist
     volumes:
       - vini_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
   api:
     image: ${DOCKER_USER:-vini_user}/vini-backend:latest
@@ -19,10 +21,10 @@ services:
     depends_on:
       - db
     ports:
-      - "3000:3000"
+      - "8031:3000"
 
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/tarefas"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/tarefas', (res) => res.statusCode === 200 ? process.exit(0) : process.exit(1))"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -33,16 +35,6 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
-    
-  web:
-    image: ${DOCKER_USER:-vini_user}/vini-frontend:latest
-    build: ./frontend
-    container_name: vini_web
-    ports:
-      - "8031:80"
-    depends_on:
-      api:
-        condition: service_healthy
 
 volumes:
   vini_data:

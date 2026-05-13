@@ -66,11 +66,6 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USER }}/vini-backend:latest ./backend
           docker push ${{ secrets.DOCKER_USER }}/vini-backend:latest
 
-      - name: Build e Push Web
-        run: |
-          docker build -t ${{ secrets.DOCKER_USER }}/vini-frontend:latest ./frontend
-          docker push ${{ secrets.DOCKER_USER }}/vini-frontend:latest
-
   test:
     needs: build
     runs-on: ubuntu-latest
