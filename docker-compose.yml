@@ -1,40 +1,48 @@
 services:
   db:
-    image: postgres:15
-    restart: always
+    image: postgres:15-alpine
+    container_name: vini_db
     environment:
       POSTGRES_USER: fatec_user
       POSTGRES_PASSWORD: fatec_password
       POSTGRES_DB: todolist
     volumes:
-      - db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U fatec_user -d todolist"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - vini_data:/var/lib/postgresql/data
 
-  backend:
+  api:
+    image: ${DOCKER_USER:-vini_user}/vini-backend:latest
     build: ./backend
+    container_name: vini_api
     restart: always
-    ports:
-      - "3000:3000"
     environment:
       DB_HOST: db
-      DB_USER: fatec_user
-      DB_PASSWORD: fatec_password
-      DB_NAME: todolist
     depends_on:
-      db:
+      - db
+    ports:
+      - "3000:3000"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/tarefas"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s  
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+  web:
+    image: ${DOCKER_USER:-vini_user}/vini-frontend:latest
+    build: ./frontend
+    container_name: vini_web
+    ports:
+      - "8031:80"
+    depends_on:
+      api:
         condition: service_healthy
 
-  frontend:
-    build: ./frontend
-    restart: always
-    ports:
-      - "8080:80"
-    depends_on:
-      - backend
-
 volumes:
-  db_data:
+  vini_data:

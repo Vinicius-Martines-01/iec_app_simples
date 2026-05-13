@@ -61,15 +61,15 @@ jobs:
           username: ${{ secrets.DOCKER_USER }}
           password: ${{ secrets.DOCKER_PASS }}
 
-      - name: Build e Push Backend
+      - name: Build e Push API
         run: |
-          docker build -t ${{ secrets.DOCKER_USER }}/iec-backend:latest ./backend
-          docker push ${{ secrets.DOCKER_USER }}/iec-backend:latest
+          docker build -t ${{ secrets.DOCKER_USER }}/vini-backend:latest ./backend
+          docker push ${{ secrets.DOCKER_USER }}/vini-backend:latest
 
-      - name: Build e Push Frontend
+      - name: Build e Push Web
         run: |
-          docker build -t ${{ secrets.DOCKER_USER }}/iec-frontend:latest ./frontend
-          docker push ${{ secrets.DOCKER_USER }}/iec-frontend:latest
+          docker build -t ${{ secrets.DOCKER_USER }}/vini-frontend:latest ./frontend
+          docker push ${{ secrets.DOCKER_USER }}/vini-frontend:latest
 
   test:
     needs: build
@@ -111,6 +111,7 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd ~/iec_app_teste
+            export DOCKER_USER=${{ secrets.DOCKER_USER }}
             docker compose pull
-            docker compose up -d
+            docker compose up -d --remove-orphans
             docker image prune -f
