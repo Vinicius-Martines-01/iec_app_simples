@@ -1,10 +1,7 @@
-FROM wordpress:latest
+FROM nginx:alpine
 
-# Instala utilitários de rede para testes (como o ping)
-RUN apt-get update && apt-get install -y iputils-ping && rm -rf /var/lib/apt/lists/*
+COPY . /usr/share/nginx/html
 
-# Copia o tema customizado para o diretório de temas do WordPress
-COPY ./themes/iec-welcome /var/www/html/wp-content/themes/iec-welcome
+EXPOSE 80
 
-# Ajusta permissões (opcional mas recomendado)
-RUN chown -R www-data:www-data /var/www/html/wp-content/themes/iec-welcome
+CMD ["nginx", "-g", "daemon off;"]

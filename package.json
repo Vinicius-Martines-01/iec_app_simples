@@ -1,11 +1,10 @@
 {
-  "name": "iec-welcome-theme",
+  "name": "iec-app-simples",
   "version": "1.0.0",
-  "description": "WordPress theme IEC Welcome - Build tools",
+  "description": "IEC App - Simple Frontend and Backend",
   "scripts": {
-    "lint": "echo 'No linting configured yet'",
     "test": "echo 'No tests configured yet'"
   },
-  "keywords": ["wordpress", "theme", "iec"],
-  "license": "GPL-2.0-or-later"
+  "keywords": ["iec", "app", "node", "nginx"],
+  "license": "MIT"
 }

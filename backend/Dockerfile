@@ -1,10 +1,13 @@
-FROM wordpress:latest
+FROM node:20-slim
 
-# Instala utilitários de rede para testes (como o ping)
-RUN apt-get update && apt-get install -y iputils-ping && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
 
-# Copia o tema customizado para o diretório de temas do WordPress
-COPY ./themes/iec-welcome /var/www/html/wp-content/themes/iec-welcome
+COPY package*.json ./
 
-# Ajusta permissões (opcional mas recomendado)
-RUN chown -R www-data:www-data /var/www/html/wp-content/themes/iec-welcome
+RUN npm install
+
+COPY . .
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]

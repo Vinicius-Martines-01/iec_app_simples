@@ -1,51 +1,40 @@
 services:
-  db: 
-    image: mariadb:10.6
+  db:
+    image: postgres:15
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: fatec_password
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: user_fatec
-      MYSQL_PASSWORD: password_fatec
+      POSTGRES_USER: fatec_user
+      POSTGRES_PASSWORD: fatec_password
+      POSTGRES_DB: todolist
     volumes:
-      - db_data:/var/lib/mysql
-    # Adicionado um healthcheck básico para o banco também, 
-    # garantindo que o WP só tente conectar quando o DB estiver pronto.
+      - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pfatec_password"]
+      test: ["CMD-SHELL", "pg_isready -U fatec_user -d todolist"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  wordpress:
-    image: ${DOCKER_IMAGE:-wordpress-fatec:latest}
+  backend:
+    build: ./backend
     restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      DB_HOST: db
+      DB_USER: fatec_user
+      DB_PASSWORD: fatec_password
+      DB_NAME: todolist
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "8031:80"
-    environment:
-      WORDPRESS_DB_HOST: db
-      WORDPRESS_DB_USER: user_fatec
-      WORDPRESS_DB_PASSWORD: password_fatec
-      WORDPRESS_DB_NAME: wordpress
-      WORDPRESS_CONFIG_EXTRA: |
-        define('WP_HOME', 'http://' . $$_SERVER['HTTP_HOST']);
-        define('WP_SITEURL', 'http://' . $$_SERVER['HTTP_HOST']);
-    
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:80/97035240"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+  frontend:
+    build: ./frontend
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
 
 volumes:
   db_data:
